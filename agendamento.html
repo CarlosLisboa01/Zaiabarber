@@ -327,7 +327,6 @@
         // Função para processar o pagamento
         async function processarPagamento(metodoPagamento) {
             try {
-                // Pegar dados do formulário
                 const servico = document.querySelector('input[name="servico"]:checked');
                 const barbeiroInput = document.querySelector('input[name="barbeiro"]:checked');
                 const data = document.querySelector('input[type="date"]');
@@ -350,33 +349,32 @@
                     valor: valores[servico.value]
                 };
 
-                // Simular QR Code PIX (temporário)
+                // Simular processamento do pagamento
                 if (metodoPagamento === 'pix') {
-                    const dadosPix = {
-                        point_of_interaction: {
-                            transaction_data: {
-                                qr_code_base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", // QR Code exemplo
-                                qr_code: "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Barbearia Zaia6008Sao Paulo62070503***63041234"
-                            }
-                        }
+                    // Fechar modal de resumo
+                    document.getElementById('resumoModal').classList.add('hidden');
+                    
+                    // Mostrar QR Code PIX simulado
+                    const qrCodeSimulado = {
+                        qr_code: "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Barbearia Zaia6008Sao Paulo62070503***63041234",
+                        valor: valores[servico.value].toFixed(2)
                     };
-                    mostrarQRCodePix(dadosPix);
-                } else {
-                    // Para pagamento com cartão, mostrar mensagem temporária
-                    alert('Funcionalidade de pagamento com cartão em desenvolvimento. Por favor, use o PIX.');
+                    
+                    mostrarQRCodePix(qrCodeSimulado);
+                } else if (metodoPagamento === 'cartao') {
+                    alert('Pagamento com cartão em desenvolvimento. Por favor, utilize o PIX.');
                 }
 
-                // Salvar dados do agendamento no localStorage
+                // Salvar agendamento no localStorage
                 localStorage.setItem('ultimoAgendamento', JSON.stringify(dadosAgendamento));
 
             } catch (erro) {
-                console.error('Erro detalhado:', erro);
-                alert(`Erro no processamento: ${erro.message}`);
+                console.error('Erro ao processar pagamento:', erro);
+                alert('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
             }
         }
 
-        // Função para mostrar o QR Code do PIX
-        function mostrarQRCodePix(dadosPix) {
+        function mostrarQRCodePix(dados) {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
             modal.innerHTML = `
@@ -385,22 +383,29 @@
                     
                     <div class="flex flex-col items-center space-y-4">
                         <div class="w-64 h-64 bg-white p-2 rounded-xl flex items-center justify-center">
-                            <p class="text-black text-center">QR Code PIX Simulado</p>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dados.qr_code)}" 
+                                 alt="QR Code PIX" 
+                                 class="w-full h-full object-contain"/>
                         </div>
                         
                         <p class="text-center text-gray-300 mt-4">
-                            Este é um QR Code simulado para demonstração
+                            Valor a pagar: R$ ${dados.valor}
                         </p>
 
                         <div class="w-full bg-gray-800 p-4 rounded-xl mt-4">
-                            <p class="text-sm text-gray-400 mb-2">Código PIX (simulado):</p>
+                            <p class="text-sm text-gray-400 mb-2">Código PIX:</p>
                             <p class="font-mono text-sm bg-gray-700 p-2 rounded select-all break-all">
-                                ${dadosPix.point_of_interaction.transaction_data.qr_code}
+                                ${dados.qr_code}
                             </p>
                         </div>
 
+                        <button onclick="window.location.href='inicio.html'" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl mt-4">
+                            Finalizar
+                        </button>
+
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                                class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl mt-4">
+                                class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl">
                             Fechar
                         </button>
                     </div>
