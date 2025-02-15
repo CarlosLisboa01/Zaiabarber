@@ -327,27 +327,6 @@
         // Função para processar o pagamento
         async function processarPagamento(metodoPagamento) {
             try {
-                console.log('Iniciando pagamento:', metodoPagamento);
-
-                // Verificar se o servidor está rodando
-                try {
-                    const testeServidor = await fetch('http://localhost:5000/ping', {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    console.log('Resposta do ping:', await testeServidor.json());
-                    
-                    if (!testeServidor.ok) {
-                        throw new Error('Servidor não está respondendo corretamente');
-                    }
-                } catch (erroServidor) {
-                    console.error('Erro ao conectar com servidor:', erroServidor);
-                    throw new Error('Não foi possível conectar ao servidor de pagamento. Verifique se o servidor está rodando na porta 5000.');
-                }
-
                 // Pegar dados do formulário
                 const servico = document.querySelector('input[name="servico"]:checked');
                 const barbeiroInput = document.querySelector('input[name="barbeiro"]:checked');
@@ -360,8 +339,8 @@
                     'combo': 70.00
                 };
 
-                // Preparar dados para o pagamento
-                const dadosPagamento = {
+                // Preparar dados do agendamento
+                const dadosAgendamento = {
                     nome: localStorage.getItem('clienteNome'),
                     celular: localStorage.getItem('clienteCelular'),
                     servico: servico.value,
@@ -371,38 +350,28 @@
                     valor: valores[servico.value]
                 };
 
-                console.log('Dados enviados para pagamento:', dadosPagamento);
-
-                const endpoint = metodoPagamento === 'pix' ? 'gerar-pix' : 'criar-pagamento';
-                console.log(`Enviando requisição para: http://localhost:5000/${endpoint}`);
-
-                const response = await fetch(`http://localhost:5000/${endpoint}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(dadosPagamento)
-                });
-
-                console.log('Status da resposta:', response.status);
-
-                const resultado = await response.json();
-                console.log('Resposta do servidor:', resultado);
-
-                if (!response.ok) {
-                    throw new Error(resultado.error || 'Erro no processamento do pagamento');
-                }
-
+                // Simular QR Code PIX (temporário)
                 if (metodoPagamento === 'pix') {
-                    mostrarQRCodePix(resultado.data);
+                    const dadosPix = {
+                        point_of_interaction: {
+                            transaction_data: {
+                                qr_code_base64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", // QR Code exemplo
+                                qr_code: "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Barbearia Zaia6008Sao Paulo62070503***63041234"
+                            }
+                        }
+                    };
+                    mostrarQRCodePix(dadosPix);
                 } else {
-                    window.location.href = resultado.data.init_point;
+                    // Para pagamento com cartão, mostrar mensagem temporária
+                    alert('Funcionalidade de pagamento com cartão em desenvolvimento. Por favor, use o PIX.');
                 }
+
+                // Salvar dados do agendamento no localStorage
+                localStorage.setItem('ultimoAgendamento', JSON.stringify(dadosAgendamento));
 
             } catch (erro) {
                 console.error('Erro detalhado:', erro);
-                alert(`Erro no pagamento: ${erro.message}`);
+                alert(`Erro no processamento: ${erro.message}`);
             }
         }
 
@@ -415,16 +384,16 @@
                     <h2 class="text-2xl font-bold mb-6 text-center">Pagamento PIX</h2>
                     
                     <div class="flex flex-col items-center space-y-4">
-                        <img src="data:image/jpeg;base64,${dadosPix.point_of_interaction.transaction_data.qr_code_base64}" 
-                             alt="QR Code PIX" 
-                             class="w-64 h-64 bg-white p-2 rounded-xl">
+                        <div class="w-64 h-64 bg-white p-2 rounded-xl flex items-center justify-center">
+                            <p class="text-black text-center">QR Code PIX Simulado</p>
+                        </div>
                         
                         <p class="text-center text-gray-300 mt-4">
-                            Escaneie o QR Code com o app do seu banco
+                            Este é um QR Code simulado para demonstração
                         </p>
 
                         <div class="w-full bg-gray-800 p-4 rounded-xl mt-4">
-                            <p class="text-sm text-gray-400 mb-2">Código PIX:</p>
+                            <p class="text-sm text-gray-400 mb-2">Código PIX (simulado):</p>
                             <p class="font-mono text-sm bg-gray-700 p-2 rounded select-all break-all">
                                 ${dadosPix.point_of_interaction.transaction_data.qr_code}
                             </p>
