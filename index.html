@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=inicio.html">
+    <title>Barbearia Zaia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white rounded-2xl shadow-lg p-8 w-96">
+        <img src="Capturar.PNG" alt="Barbearia Zaia Logo" class="w-48 mx-auto mb-4">
+        
+        <form id="agendamentoForm" class="space-y-4">
+            <div>
+                <label for="nomeCompleto" class="block text-sm font-medium">Nome Completo:</label>
+                <input id="nomeCompleto" type="text" class="w-full p-2 border rounded-lg" 
+                    placeholder="Digite seu nome completo" required>
+            </div>
+            <div>
+                <label for="celular" class="block text-sm font-medium">Celular:</label>
+                <input id="celular" type="tel" class="w-full p-2 border rounded-lg" 
+                    placeholder="Digite apenas números" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 rounded-lg hover:bg-blue-600">
+                Continuar
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Máscara para o campo de celular
+        const celularInput = document.getElementById('celular');
+        celularInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) {
+                value = value.slice(0, 11);
+            }
+            e.target.value = value;
+        });
+
+        // Manipulador do formulário
+        document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const celular = document.getElementById('celular').value;
+
+            if (celular.length !== 11) {
+                alert('O número de celular deve ter 11 dígitos');
+                return;
+            }
+
+            try {
+                localStorage.setItem('clienteNome', nomeCompleto);
+                localStorage.setItem('clienteCelular', celular);
+                window.location.href = 'agendamento.html';
+            } catch (error) {
+                alert('Erro ao processar dados');
+                console.error('Erro:', error);
+            }
+        });
+    </script>
+</body>
+</html> 

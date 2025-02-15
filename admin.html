@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Barbeiro - Agendamentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+            min-height: 100vh;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Cabeçalho -->
+    <header class="glass-effect sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <img src="Capturar.PNG" alt="Logo" class="h-12 w-auto">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                        Painel de Agendamentos
+                    </h1>
+                </div>
+                <div class="flex space-x-4">
+                    <select id="filtroData" 
+                            class="bg-gray-800 text-white px-6 py-3 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="hoje">Hoje</option>
+                        <option value="amanha">Amanhã</option>
+                        <option value="semana">Esta Semana</option>
+                    </select>
+                    <button onclick="atualizarAgendamentos()" 
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105">
+                        Atualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 card-shadow">
+                <h3 class="text-lg font-semibold opacity-80">Agendamentos Hoje</h3>
+                <p class="text-3xl font-bold mt-2" id="totalHoje">0</p>
+            </div>
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 card-shadow">
+                <h3 class="text-lg font-semibold opacity-80">Confirmados</h3>
+                <p class="text-3xl font-bold mt-2" id="totalConfirmados">0</p>
+            </div>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 card-shadow">
+                <h3 class="text-lg font-semibold opacity-80">Valor Total</h3>
+                <p class="text-3xl font-bold mt-2" id="valorTotal">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Cards de Agendamentos -->
+        <div id="listaAgendamentos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Os cards serão inseridos aqui via JavaScript -->
+        </div>
+    </main>
+
+    <script>
+        function formatarData(dataString) {
+            const data = new Date(dataString);
+            return data.toLocaleDateString('pt-BR');
+        }
+
+        function formatarValor(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function getStatusColor(status) {
+            const cores = {
+                'pendente': 'bg-yellow-500',
+                'confirmado': 'bg-green-500',
+                'cancelado': 'bg-red-500'
+            };
+            return cores[status.toLowerCase()] || 'bg-gray-500';
+        }
+
+        function criarCardAgendamento(agendamento) {
+            return `
+                <div class="bg-gray-800 rounded-xl shadow-lg p-6 hover:bg-gray-750 transition-all duration-200 transform hover:scale-102 card-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white">${agendamento.nome}</h3>
+                            <p class="text-gray-400">${agendamento.celular}</p>
+                        </div>
+                        <span class="${getStatusColor(agendamento.status)} text-white px-4 py-1 rounded-full text-sm font-medium">
+                            ${agendamento.status}
+                        </span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center bg-gray-700 bg-opacity-40 p-3 rounded-lg">
+                            <svg class="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-gray-200">${agendamento.hora}</p>
+                        </div>
+                        
+                        <div class="flex items-center bg-gray-700 bg-opacity-40 p-3 rounded-lg">
+                            <svg class="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <p class="text-gray-200">${agendamento.servico}</p>
+                        </div>
+                        
+                        <div class="flex items-center bg-gray-700 bg-opacity-40 p-3 rounded-lg">
+                            <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-gray-200">${formatarValor(agendamento.valor)}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-2 gap-3">
+                        <button onclick="confirmarAgendamento(${agendamento.id})" 
+                                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105">
+                            Confirmar
+                        </button>
+                        <button onclick="cancelarAgendamento(${agendamento.id})" 
+                                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-4 py-3 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function atualizarAgendamentos() {
+            try {
+                const filtro = document.getElementById('filtroData').value;
+                const response = await fetch(`http://localhost:5000/agendamentos/${filtro}`);
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar agendamentos');
+                }
+
+                const agendamentos = await response.json();
+                const listaElement = document.getElementById('listaAgendamentos');
+                
+                // Atualizar estatísticas
+                const totalHoje = agendamentos.length;
+                const confirmados = agendamentos.filter(a => a.status === 'confirmado').length;
+                const valorTotal = agendamentos.reduce((total, a) => total + a.valor, 0);
+
+                document.getElementById('totalHoje').textContent = totalHoje;
+                document.getElementById('totalConfirmados').textContent = confirmados;
+                document.getElementById('valorTotal').textContent = formatarValor(valorTotal);
+                
+                // Atualizar lista de agendamentos
+                listaElement.innerHTML = agendamentos.length > 0 
+                    ? agendamentos.map(criarCardAgendamento).join('')
+                    : `
+                        <div class="col-span-full flex flex-col items-center justify-center p-12 bg-gray-800 rounded-xl">
+                            <svg class="w-16 h-16 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-xl text-gray-400">Nenhum agendamento encontrado</p>
+                        </div>
+                    `;
+
+            } catch (erro) {
+                console.error('Erro:', erro);
+                alert('Erro ao carregar agendamentos');
+            }
+        }
+
+        // Função para confirmar agendamento
+        async function confirmarAgendamento(id) {
+            try {
+                const response = await fetch(`http://localhost:5000/agendamentos/${id}/confirmar`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao confirmar agendamento');
+                }
+
+                atualizarAgendamentos();
+                alert('Agendamento confirmado com sucesso!');
+
+            } catch (erro) {
+                console.error('Erro:', erro);
+                alert('Erro ao confirmar agendamento');
+            }
+        }
+
+        // Função para cancelar agendamento
+        async function cancelarAgendamento(id) {
+            if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/agendamentos/${id}/cancelar`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao cancelar agendamento');
+                }
+
+                atualizarAgendamentos();
+                alert('Agendamento cancelado com sucesso!');
+
+            } catch (erro) {
+                console.error('Erro:', erro);
+                alert('Erro ao cancelar agendamento');
+            }
+        }
+
+        // Carregar agendamentos ao iniciar a página
+        document.addEventListener('DOMContentLoaded', atualizarAgendamentos);
+    </script>
+</body>
+</html> 
